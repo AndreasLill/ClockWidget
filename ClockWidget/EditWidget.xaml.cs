@@ -6,6 +6,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
+/*
+    Author: Andreas Lill
+    License: Apache License 2.0
+
+    http://www.apache.org/licenses/LICENSE-2.0
+*/
 namespace ClockWidget
 {
     public partial class EditWidget : Window

@@ -13,6 +13,12 @@ using ContextMenu = System.Windows.Controls.ContextMenu;
 using MenuItem = System.Windows.Controls.MenuItem;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 
+/*
+    Author: Andreas Lill
+    License: Apache License 2.0
+
+    http://www.apache.org/licenses/LICENSE-2.0
+*/
 namespace ClockWidget
 {
     public partial class MainWindow : Window
