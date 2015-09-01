@@ -13,7 +13,7 @@ This border will disappear when the window is locked.
 When unlocked, Right-click on the desktop to add new labels, and right-click the label to edit or remove.
 Any changes are automatically saved to Widgets.XML in your application folder.
 
-----
+--
 
 Feel free to use this project to learn or use for your own projects.
 
