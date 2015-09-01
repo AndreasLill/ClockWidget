@@ -165,18 +165,45 @@ namespace ClockWidget
                 foreach (XmlNode widgetNode in rootNode.ChildNodes)
                 {
                     var widget = new LabelWidget();
-                    widget.SetLocation(Double.Parse(widgetNode.Attributes["X"].Value), Double.Parse(widgetNode.Attributes["Y"].Value));
+
+                    if (widgetNode.Attributes["X"].Value != null && widgetNode.Attributes["Y"].Value != null)
+                    {
+                        widget.SetLocation(Double.Parse(widgetNode.Attributes["X"].Value), Double.Parse(widgetNode.Attributes["Y"].Value));
+                    }
 
                     XmlNode appearanceNode = widgetNode.SelectSingleNode("Appearance");
-                    widget.FontFamily = new FontFamily(appearanceNode.Attributes["FontFamily"].Value);
-                    widget.FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(appearanceNode.Attributes["FontStyle"].Value);
-                    widget.FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(appearanceNode.Attributes["FontWeight"].Value);
-                    widget.FontSize = Double.Parse(appearanceNode.Attributes["FontSize"].Value);
-                    widget.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString(appearanceNode.Attributes["Color"].Value);
-                    widget.Opacity = Double.Parse(appearanceNode.Attributes["Opacity"].Value);
+
+                    if (appearanceNode.Attributes["FontFamily"].Value != null)
+                    {
+                        widget.FontFamily = new FontFamily(appearanceNode.Attributes["FontFamily"].Value);
+                    }
+                    if (appearanceNode.Attributes["FontStyle"].Value != null)
+                    {
+                        widget.FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(appearanceNode.Attributes["FontStyle"].Value);
+                    }
+                    if (appearanceNode.Attributes["FontWeight"].Value != null)
+                    {
+                        widget.FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(appearanceNode.Attributes["FontWeight"].Value);
+                    }
+                    if (appearanceNode.Attributes["FontSize"].Value != null)
+                    {
+                        widget.FontSize = Double.Parse(appearanceNode.Attributes["FontSize"].Value);
+                    }
+                    if (appearanceNode.Attributes["Color"].Value != null)
+                    {
+                        widget.Foreground = (SolidColorBrush)new BrushConverter().ConvertFromString(appearanceNode.Attributes["Color"].Value);
+                    }
+                    if (appearanceNode.Attributes["Opacity"].Value != null)
+                    {
+                        widget.Opacity = Double.Parse(appearanceNode.Attributes["Opacity"].Value);
+                    }
 
                     XmlNode contentNode = widgetNode.SelectSingleNode("Content");
-                    widget.WidgetText = contentNode.Attributes["WidgetText"].Value;
+
+                    if (contentNode.Attributes["WidgetText"].Value != null)
+                    {
+                        widget.WidgetText = contentNode.Attributes["WidgetText"].Value;
+                    }
 
                     widgetList.Add(widget);
                 }
