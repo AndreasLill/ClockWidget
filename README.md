@@ -15,9 +15,3 @@ The border will disappear when the window is locked.
 The clock can be edited by right clicking on the clock and choosing "Edit".
 
 All changes are saved automatically to a XML file.
-
---
-
-Feel free to use this project to learn or use for your own projects.
-
-// Andreas Lill
