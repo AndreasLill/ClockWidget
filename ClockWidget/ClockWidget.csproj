@@ -61,22 +61,22 @@
     </Compile>
     <Compile Include="Program\Helper.cs" />
     <Compile Include="Program\FileIO.cs" />
-    <Compile Include="Program\LabelWidget.cs" />
+    <Compile Include="Program\Clock.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Program\Settings.cs" />
-    <Compile Include="EditWidget.xaml.cs">
-      <DependentUpon>EditWidget.xaml</DependentUpon>
+    <Compile Include="EditClock.xaml.cs">
+      <DependentUpon>EditClock.xaml</DependentUpon>
     </Compile>
     <Compile Include="Program\WindowUtility.cs" />
     <Page Include="ColorPicker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EditWidget.xaml">
+    <Page Include="EditClock.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

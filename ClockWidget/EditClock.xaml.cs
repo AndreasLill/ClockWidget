@@ -14,18 +14,18 @@ using System.Windows.Media;
 */
 namespace ClockWidget
 {
-    public partial class EditWidget : Window
+    public partial class EditClock : Window
     {
         private ColorPicker colorPicker;
-        private LabelWidget widget;
+        private Clock clockWidget;
         private MainWindow mainWindow;
 
-        public EditWidget(MainWindow window, LabelWidget labelWidget)
+        public EditClock(MainWindow window, Clock clock)
         {
             InitializeComponent();
 
             mainWindow = window;
-            widget = labelWidget;
+            clockWidget = clock;
 
             InitializeFonts();
             InitializeControls();
@@ -58,6 +58,11 @@ namespace ClockWidget
             e.Handled = true;
         }
 
+        /// <summary>
+        /// Get all font styles from a font and return as an array.
+        /// </summary>
+        /// <param name="font">The font to use</param>
+        /// <returns>The array of font styles</returns>
         private FontStyle[] GetFontStyles(FontFamily font)
         {
             List<FontStyle> list = new List<FontStyle>();
@@ -74,6 +79,12 @@ namespace ClockWidget
             return (FontStyle[])list.ToArray();
         }
 
+        /// <summary>
+        /// Get all font weights from a font style and return as array.
+        /// </summary>
+        /// <param name="font">The font to use</param>
+        /// <param name="fontStyle">The font style</param>
+        /// <returns>The array of font weights</returns>
         private FontWeight[] GetFontWeights(FontFamily font, FontStyle fontStyle)
         {
             List<FontWeight> list = new List<FontWeight>();
@@ -90,6 +101,10 @@ namespace ClockWidget
             return (FontWeight[])list.ToArray();
         }
 
+        /// <summary>
+        /// Updates the font styles and fills the list based on font.
+        /// </summary>
+        /// <param name="font">The font to use</param>
         private void UpdateFontStyles(FontFamily font)
         {
             if (font != null)
@@ -102,6 +117,11 @@ namespace ClockWidget
             }
         }
 
+        /// <summary>
+        /// Updates the font weights and fills the list based on the font style.
+        /// </summary>
+        /// <param name="font">The font to use</param>
+        /// <param name="style">The font style</param>
         private void UpdateFontWeights(FontFamily font, FontStyle style)
         {
             if (font != null)
@@ -116,19 +136,25 @@ namespace ClockWidget
 
         private void InitializeControls()
         {
-            ContentTextBox.Text = widget.WidgetText;
-            FontFamilyComboBox.SelectedValue = widget.FontFamily.Source;
+            FontFamilyComboBox.SelectedValue = clockWidget.FontFamily.Source;
 
-            this.UpdateFontStyles(widget.FontFamily);
-            this.UpdateFontWeights(widget.FontFamily, widget.FontStyle);
+            this.UpdateFontStyles(clockWidget.FontFamily);
+            this.UpdateFontWeights(clockWidget.FontFamily, clockWidget.FontStyle);
 
-            FontStyleComboBox.SelectedItem = widget.FontStyle;
-            FontWeightComboBox.SelectedItem = widget.FontWeight;
-            FontSizeTextBox.Text = widget.FontSize.ToString();
-            ForegroundColorButton.Background = widget.Foreground;
-            OpacitySlider.Value = widget.Opacity * 100f;
+            // Load settings into UI.
+            ShowSecondsCheckBox.IsChecked = clockWidget.DisplaySeconds;
+            TwelveHourCheckBox.IsChecked = clockWidget.Display12h;
+            FontStyleComboBox.SelectedItem = clockWidget.FontStyle;
+            FontWeightComboBox.SelectedItem = clockWidget.FontWeight;
+            FontSizeTextBox.Text = clockWidget.FontSize.ToString();
+            ForegroundColorButton.Background = clockWidget.Foreground;
+            OpacitySlider.Value = clockWidget.Opacity * 100f;
 
-            ContentTextBox.TextChanged += ContentTextBox_TextChanged;
+            // Create control events.
+            ShowSecondsCheckBox.Checked += ShowSecondsCheckBox_Checked;
+            ShowSecondsCheckBox.Unchecked += ShowSecondsCheckBox_Unchecked;
+            TwelveHourCheckBox.Checked += TwelveHourCheckBox_Checked;
+            TwelveHourCheckBox.Unchecked += TwelveHourCheckBox_Unchecked;
             FontFamilyComboBox.SelectionChanged += FontFamilyComboBox_SelectionChanged;
             FontStyleComboBox.SelectionChanged += FontStyleComboBox_SelectionChanged;
             FontWeightComboBox.SelectionChanged += FontWeightComboBox_SelectionChanged;
@@ -136,11 +162,36 @@ namespace ClockWidget
             OpacitySlider.ValueChanged += OpacitySlider_ValueChanged;
         }
 
-        private void ContentTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void TwelveHourCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            widget.WidgetText = ContentTextBox.Text;
-            widget.Update();
-            widget.UpdateUI();
+            clockWidget.Display12h = false;
+
+            clockWidget.Update();
+            clockWidget.UpdateUI();
+        }
+
+        private void TwelveHourCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            clockWidget.Display12h = true;
+
+            clockWidget.Update();
+            clockWidget.UpdateUI();
+        }
+
+        private void ShowSecondsCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            clockWidget.DisplaySeconds = false;
+
+            clockWidget.Update();
+            clockWidget.UpdateUI();
+        }
+
+        private void ShowSecondsCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            clockWidget.DisplaySeconds = true;
+
+            clockWidget.Update();
+            clockWidget.UpdateUI();
         }
 
         private void FontFamilyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -152,9 +203,9 @@ namespace ClockWidget
                 this.UpdateFontStyles(fontFamily);
                 this.UpdateFontWeights(fontFamily, (FontStyle) FontStyleComboBox.SelectedItem);
 
-                widget.FontFamily = fontFamily;
-                widget.FontStyle = (FontStyle)FontStyleComboBox.SelectedItem;
-                widget.FontWeight = (FontWeight)FontWeightComboBox.SelectedItem;
+                clockWidget.FontFamily = fontFamily;
+                clockWidget.FontStyle = (FontStyle)FontStyleComboBox.SelectedItem;
+                clockWidget.FontWeight = (FontWeight)FontWeightComboBox.SelectedItem;
             }
         }
 
@@ -166,7 +217,7 @@ namespace ClockWidget
             {
                 this.UpdateFontWeights(fontFamily, (FontStyle) FontStyleComboBox.SelectedItem);
 
-                widget.FontStyle = (FontStyle)FontStyleComboBox.SelectedItem;
+                clockWidget.FontStyle = (FontStyle)FontStyleComboBox.SelectedItem;
             }
         }
 
@@ -179,7 +230,7 @@ namespace ClockWidget
                 if (FontWeightComboBox.SelectedItem == null)
                     FontWeightComboBox.SelectedIndex = 0;
 
-                widget.FontWeight = (FontWeight)FontWeightComboBox.SelectedItem;
+                clockWidget.FontWeight = (FontWeight)FontWeightComboBox.SelectedItem;
             }
         }
 
@@ -187,6 +238,7 @@ namespace ClockWidget
         {
             TextBox textBox = sender as TextBox;
 
+            // Force use of numbers only using regex.
             if (!Regex.IsMatch(textBox.Text, "^[0-9]+$"))
             {
                 textBox.Text = Helper.FilterByRegex(textBox.Text, "^[0-9]+$");
@@ -197,7 +249,7 @@ namespace ClockWidget
             if (!String.IsNullOrEmpty(textBox.Text))
             {
                 double fontSize = Double.Parse(textBox.Text);
-                widget.FontSize = Helper.Clamp(fontSize, 1, 5000); ;
+                clockWidget.FontSize = Helper.Clamp(fontSize, 1, 5000); ;
             }
         }
 
@@ -213,7 +265,7 @@ namespace ClockWidget
 
         private void ColorPicker_ApplyForeground(object sender, EventArgs e)
         {
-            widget.Foreground = colorPicker.GetBrush();
+            clockWidget.Foreground = colorPicker.GetBrush();
             ForegroundColorButton.Background = colorPicker.GetBrush();
         }
 
@@ -222,7 +274,7 @@ namespace ClockWidget
             double opacity = OpacitySlider.Value / 100f;
             OpacityLabel.Content = Math.Round(opacity * 100) + "%";
 
-            widget.Opacity = opacity;
+            clockWidget.Opacity = opacity;
         }
 
         private void Window_Closed(object sender, EventArgs e)

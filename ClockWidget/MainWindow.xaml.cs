@@ -27,7 +27,7 @@ namespace ClockWidget
         private NotifyIcon notifyIcon;
         private ContextMenu widgetMenu;
 
-        private List<LabelWidget> widgetList;
+        private Clock clockWidget;
 
         private Point moveFrom;
         private bool isLocked;
@@ -38,10 +38,11 @@ namespace ClockWidget
         {
             InitializeComponent();
             InitializeMenu();
-            InitializeWidgets();
+            InitializeClock();
 
             Width = SystemParameters.WorkArea.Width;
             Height = SystemParameters.WorkArea.Height;
+            Background = Brushes.Transparent;
 
             // Create a new background worker to update all widgets.
             updateWorker = new BackgroundWorker();
@@ -57,7 +58,7 @@ namespace ClockWidget
         {
             extendedStyle = WindowUtility.GetExtendedStyle(this);
 
-            isLocked = FileIO.LoadWidgetLock();
+            isLocked = FileIO.LoadWindowLock();
 
             if (isLocked)
             {
@@ -89,7 +90,6 @@ namespace ClockWidget
             notifyIcon.ContextMenu.MenuItems.Add(new System.Windows.Forms.MenuItem("-"));
             notifyIcon.ContextMenu.MenuItems.Add(new System.Windows.Forms.MenuItem("Exit", Menu_Exit));
 
-            ContextMenu = new ContextMenu();
             widgetMenu = new ContextMenu();
 
             MenuItem menuItem;
@@ -98,95 +98,27 @@ namespace ClockWidget
             menuItem.Header = "Edit";
             menuItem.Click += Menu_EditWidget;
             widgetMenu.Items.Add(menuItem);
-
-            widgetMenu.Items.Add(new Separator());
-
-            menuItem = new MenuItem();
-            menuItem.Header = "Remove";
-            menuItem.Click += Menu_RemoveWidget;
-            widgetMenu.Items.Add(menuItem);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "New Label";
-            menuItem.Click += Menu_NewLabel;
-            this.ContextMenu.Items.Add(menuItem);
         }
 
         /// <summary>
         /// Initialize all widgets.
         /// </summary>
-        private void InitializeWidgets()
+        private void InitializeClock()
         {
-            widgetList = FileIO.LoadWidgets();
+            clockWidget = FileIO.LoadClock();
 
-            foreach (LabelWidget widget in widgetList)
+            if (clockWidget != null)
             {
-                this.AddWidget(widget);
+                clockWidget.MouseMove += Widget_MouseMove;
+                clockWidget.MouseUp += Widget_MouseUp;
+                clockWidget.MouseDown += Widget_MouseDown;
+                clockWidget.ContextMenu = widgetMenu;
+
+                Panel.Children.Add(clockWidget);
+
+                Canvas.SetLeft(clockWidget, clockWidget.GetLocation().X);
+                Canvas.SetTop(clockWidget, clockWidget.GetLocation().Y);
             }
-        }
-
-        /// <summary>
-        /// Add a new widget to the window.
-        /// </summary>
-        /// <param name="widget">The widget to add</param>
-        private void AddWidget(LabelWidget widget)
-        {
-            widget.MouseMove += Widget_MouseMove;
-            widget.MouseUp += Widget_MouseUp;
-            widget.MouseDown += Widget_MouseDown;
-            widget.ContextMenu = widgetMenu;
-
-            Panel.Children.Add(widget);
-
-            Canvas.SetLeft(widget, widget.GetLocation().X);
-            Canvas.SetTop(widget, widget.GetLocation().Y);
-        }
-
-        private void Menu_NewLabel(object sender, RoutedEventArgs e)
-        {
-            LabelWidget widget = new LabelWidget();
-
-            widget.MouseMove += Widget_MouseMove;
-            widget.MouseUp += Widget_MouseUp;
-            widget.MouseDown += Widget_MouseDown;
-
-            widget.ContextMenu = widgetMenu;
-
-            widgetList.Add(widget);
-            Panel.Children.Add(widget);
-
-            Point mousePos = Mouse.GetPosition(Panel);
-            widget.SetLocation(mousePos.X, mousePos.Y);
-
-            Canvas.SetLeft(widget, widget.GetLocation().X);
-            Canvas.SetTop(widget, widget.GetLocation().Y);
-
-            SaveData();
-        }
-
-        private void Menu_RemoveWidget(object sender, RoutedEventArgs e)
-        {
-            var item = sender as MenuItem;
-
-            if (item != null)
-            {
-                var menu = item.Parent as ContextMenu;
-
-                if (menu != null)
-                {
-                    var widget = menu.PlacementTarget as LabelWidget;
-
-                    if (widget != null)
-                    {
-                        Panel.Children.Remove(widget as UIElement);
-                        widgetList.Remove(widget);
-
-                        SaveData();
-                    }
-                }
-            }
-
-            WindowUtility.SendWindowToBack(this);
         }
 
         private void Menu_EditWidget(object sender, RoutedEventArgs e)
@@ -199,11 +131,11 @@ namespace ClockWidget
 
                 if (menu != null)
                 {
-                    var widget = menu.PlacementTarget as LabelWidget;
+                    var clock = menu.PlacementTarget as Clock;
 
-                    if (widget != null)
+                    if (clock != null)
                     {
-                        new EditWidget(this, widget).Show();
+                        new EditClock(this, clock).Show();
                     }
                 }
             }
@@ -231,7 +163,7 @@ namespace ClockWidget
 
             WindowUtility.SetWindowTransparent(this, extendedStyle);
 
-            this.Background = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255));
+            clockWidget.Background = new SolidColorBrush(Color.FromArgb(0, 255, 255, 255));
             this.PanelBorder.BorderBrush = Brushes.Transparent;
         }
 
@@ -245,7 +177,7 @@ namespace ClockWidget
 
             WindowUtility.SetWindowNormal(this, extendedStyle);
 
-            this.Background = new SolidColorBrush(Color.FromArgb(1, 255, 255, 255));
+            clockWidget.Background = new SolidColorBrush(Color.FromArgb(1, 255, 255, 255));
             this.PanelBorder.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0));
         }
 
@@ -262,9 +194,11 @@ namespace ClockWidget
 
         private void Widget_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (!isLocked && e.LeftButton == MouseButtonState.Pressed && Keyboard.IsKeyDown(Key.LeftShift))
+            if (!isLocked && e.LeftButton == MouseButtonState.Pressed)
             {
                 var element = sender as UIElement;
+
+                WindowUtility.SendWindowToBack(this);
 
                 moveFrom = e.GetPosition(element);
                 Mouse.Capture(element);
@@ -288,7 +222,7 @@ namespace ClockWidget
 
         private void Widget_MouseMove(object sender, MouseEventArgs e)
         {
-            if (!isLocked && isMoving && e.LeftButton == MouseButtonState.Pressed && Keyboard.IsKeyDown(Key.LeftShift))
+            if (!isLocked && isMoving && e.LeftButton == MouseButtonState.Pressed)
             {
                 var element = sender as UIElement;
 
@@ -297,7 +231,7 @@ namespace ClockWidget
                 element.SetValue(Canvas.LeftProperty, currentPos.X - moveFrom.X);
                 element.SetValue(Canvas.TopProperty, currentPos.Y - moveFrom.Y);
 
-                LabelWidget widget = element as LabelWidget;
+                Clock widget = element as Clock;
 
                 widget.SetLocation(currentPos.X - moveFrom.X, currentPos.Y - moveFrom.Y);
             }
@@ -310,17 +244,15 @@ namespace ClockWidget
 
         public void SaveData()
         {
-            FileIO.SaveWidgets(widgetList, isLocked);
+            FileIO.SaveClock(clockWidget, isLocked);
         }
 
         private void updateWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             while (!updateWorker.CancellationPending)
             {
-                foreach (LabelWidget widget in widgetList)
-                {
-                    widget.Update();
-                }
+                // Update the logic.
+                clockWidget.Update();
 
                 updateWorker.ReportProgress(0);
                 Thread.Sleep(1000);
@@ -329,10 +261,8 @@ namespace ClockWidget
 
         private void updateWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            foreach (LabelWidget widget in widgetList)
-            {
-                 widget.UpdateUI();
-            }
+            // Update the UI.
+            clockWidget.UpdateUI();
         }
     }
 }
